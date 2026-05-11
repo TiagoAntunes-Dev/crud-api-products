@@ -2,7 +2,7 @@
 
 Uma API RESTful simples e estruturada para gerenciamento de produtos, desenvolvida com Node.js, Express e MongoDB. Este projeto foi construído aplicando o padrão de arquitetura MVC (Model-View-Controller) para melhor organização e escalabilidade do código.
 
-Projeto desenvolvido como parte dos estudos no curso de Sistemas para Internet do Senac.
+Projeto desenvolvido como parte dos estudos para o curso de Sistemas para Internet do Senac.
 
 ## 🚀 Tecnologias Utilizadas
 
