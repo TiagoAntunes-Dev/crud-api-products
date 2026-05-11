@@ -1,4 +1,5 @@
 const Product = require('../models/product.model');
+const mongoose = require('mongoose'); // Importação necessária para validar o ObjectId
 
 // Puxar todos os produtos (GET)
 const getProducts = async (req, res) => {
@@ -14,6 +15,12 @@ const getProducts = async (req, res) => {
 const getProduct = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // 1. Trava de segurança da URL: Impede o CastError do Mongoose
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Formato de ID inválido.' });
+        }
+
         const product = await Product.findById(id);
         
         if (!product) {
@@ -28,16 +35,15 @@ const getProduct = async (req, res) => {
 // Criar um novo produto (POST)
 const createProduct = async (req, res) => {
     try {
-        // 1. Extração segura (Desestruturação evita que campos maliciosos passem)
+        // 1. Extração segura (Ignora campos que não existem no Model)
         const { name, quantity, price, image } = req.body;
 
-        // 2. Validação: Impede o avanço se dados obrigatórios faltarem
-        // Verifica se o nome é falso/vazio ou se o preço não foi enviado
+        // 2. Validação de dados vitais
         if (!name || name.trim() === "" || price == null) {
             return res.status(400).json({ message: 'Os campos nome e preço são obrigatórios e não podem estar vazios.' });
         }
 
-        // 3. Criação segura no banco utilizando apenas os campos extraídos
+        // 3. Criação isolada
         const product = await Product.create({ name, quantity, price, image });
         res.status(201).json(product);
     } catch (error) {
@@ -49,24 +55,28 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // 1. Trava de segurança da URL
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Formato de ID inválido para atualização.' });
+        }
+
+        // 2. Extração segura dos dados enviados
         const { name, quantity, price, image } = req.body;
 
-        // Validação customizada: Se tentarem atualizar o nome, ele não pode ser vazio
+        // 3. Validação lógica
         if (name !== undefined && name.trim() === "") {
             return res.status(400).json({ message: 'O nome do produto não pode ser vazio.' });
         }
 
-        // Monta um objeto limpo apenas com as propriedades que o cliente enviou.
-        // Isso permite atualizações parciais (ex: atualizar só o preço sem apagar o resto).
+        // 4. Montagem do objeto limpo para atualização parcial
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (quantity !== undefined) updateData.quantity = quantity;
         if (price !== undefined) updateData.price = price;
         if (image !== undefined) updateData.image = image;
 
-        // Otimização e Segurança:
-        // { new: true } -> Retorna o documento já atualizado, poupando um findById extra.
-        // { runValidators: true } -> Força o Mongoose a aplicar as regras do Model também na edição.
+        // 5. Execução com validações estritas do Model ativadas
         const product = await Product.findByIdAndUpdate(id, updateData, { 
             new: true, 
             runValidators: true 
@@ -86,6 +96,12 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
+
+        // 1. Trava de segurança da URL
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Formato de ID inválido para exclusão.' });
+        }
+
         const product = await Product.findByIdAndDelete(id);
 
         if (!product) {
