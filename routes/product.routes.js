@@ -15,6 +15,6 @@ router.get('/', getProducts);          // Pegar todos
 router.get('/:id', getProduct);        // Pegar um só
 router.post('/', createProduct);       // Criar
 router.put('/:id', updateProduct);     // Atualizar
-router.delete('/:id', deleteProduct);  // Deletar
+router.delete('/:id', deleteProduct);  // Deleta
 
 module.exports = router;
