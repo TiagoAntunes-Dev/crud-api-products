@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-// Importa todas as lógicas do controller de uma vez só
 const { 
     getProducts, 
     getProduct, 
@@ -10,11 +9,15 @@ const {
     deleteProduct 
 } = require('../controllers/product.controller');
 
-// Rotas
-router.get('/', getProducts);          // Pegar todos
-router.get('/:id', getProduct);        // Pegar um só
-router.post('/', createProduct);       // Criar
-router.put('/:id', updateProduct);     // Atualizar
-router.delete('/:id', deleteProduct);  // Deletar
+// 1. Agrupamento de rotas para a raiz ('/')
+router.route('/')
+    .get(getProducts)       // Pegar todos
+    .post(createProduct);   // Criar
+
+// 2. Agrupamento de rotas para um ID específico ('/:id')
+router.route('/:id')
+    .get(getProduct)        // Pegar um só
+    .put(updateProduct)     // Atualizar
+    .delete(deleteProduct); // Deletar
 
 module.exports = router;
