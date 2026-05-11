@@ -20,6 +20,15 @@ O código está estruturado em responsabilidades claras:
 * `routes/`: Mapeia as URLs da API para as funções do controller.
 * `index.js`: Ponto de entrada da aplicação, responsável por configurar o servidor e conectar ao banco.
 
+## 🗺️ Roadmap e Melhorias Futuras (V2)
+
+Este projeto foi inicialmente concebido com um escopo fechado e uma modelagem de dados simplificada para atender aos requisitos acadêmicos da disciplina. No entanto, visando a evolução contínua e a demonstração de conceitos avançados de engenharia de software, o seguinte roadmap está planejado:
+
+- [ ] **Gestão de Pedidos (Relacionamento de Entidades):** Criação da entidade `Order` para agrupar múltiplos produtos, introduzindo transações no banco de dados.
+- [ ] **Histórico e Controle de Estoque:** Registro de movimentações de entrada e saída, onde o saldo é calculado dinamicamente em vez de apenas sobrescrito.
+- [ ] **Autenticação e Autorização (RBAC):** Implementação de segurança com JWT (JSON Web Tokens) para separar permissões de administradores e usuários comuns.
+- [ ] **Cobertura de Testes (QA):** Implementação de testes automatizados e de integração com Jest e Supertest para garantir a estabilidade das rotas e regras de negócio.
+
 ## 🛠️ Como executar o projeto localmente
 
 ### Pré-requisitos
