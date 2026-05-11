@@ -17,7 +17,7 @@ const getProduct = async (req, res) => {
         const product = await Product.findById(id);
         
         if (!product) {
-            return res.status(404).json({ message: 'Product not Found' });
+            return res.status(404).json({ message: 'Produto não encontrado.' });
         }
         res.status(200).json(product);
     } catch (error) {
@@ -28,7 +28,17 @@ const getProduct = async (req, res) => {
 // Criar um novo produto (POST)
 const createProduct = async (req, res) => {
     try {
-        const product = await Product.create(req.body);
+        // 1. Extração segura (Desestruturação evita que campos maliciosos passem)
+        const { name, quantity, price, image } = req.body;
+
+        // 2. Validação: Impede o avanço se dados obrigatórios faltarem
+        // Verifica se o nome é falso/vazio ou se o preço não foi enviado
+        if (!name || name.trim() === "" || price == null) {
+            return res.status(400).json({ message: 'Os campos nome e preço são obrigatórios e não podem estar vazios.' });
+        }
+
+        // 3. Criação segura no banco utilizando apenas os campos extraídos
+        const product = await Product.create({ name, quantity, price, image });
         res.status(201).json(product);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -39,14 +49,34 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await Product.findByIdAndUpdate(id, req.body);
+        const { name, quantity, price, image } = req.body;
 
-        if (!product) {
-            return res.status(404).json({ message: 'Product not Found' });
+        // Validação customizada: Se tentarem atualizar o nome, ele não pode ser vazio
+        if (name !== undefined && name.trim() === "") {
+            return res.status(400).json({ message: 'O nome do produto não pode ser vazio.' });
         }
 
-        const updatedProduct = await Product.findById(id);
-        res.status(200).json(updatedProduct); 
+        // Monta um objeto limpo apenas com as propriedades que o cliente enviou.
+        // Isso permite atualizações parciais (ex: atualizar só o preço sem apagar o resto).
+        const updateData = {};
+        if (name !== undefined) updateData.name = name;
+        if (quantity !== undefined) updateData.quantity = quantity;
+        if (price !== undefined) updateData.price = price;
+        if (image !== undefined) updateData.image = image;
+
+        // Otimização e Segurança:
+        // { new: true } -> Retorna o documento já atualizado, poupando um findById extra.
+        // { runValidators: true } -> Força o Mongoose a aplicar as regras do Model também na edição.
+        const product = await Product.findByIdAndUpdate(id, updateData, { 
+            new: true, 
+            runValidators: true 
+        });
+
+        if (!product) {
+            return res.status(404).json({ message: 'Produto não encontrado para atualização.' });
+        }
+
+        res.status(200).json(product); 
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -59,16 +89,15 @@ const deleteProduct = async (req, res) => {
         const product = await Product.findByIdAndDelete(id);
 
         if (!product) {
-            return res.status(404).json({ message: 'Product not Found' });
+            return res.status(404).json({ message: 'Produto não encontrado para exclusão.' });
         }
 
-        res.status(200).json({ message: 'Product deleted successfully' });
+        res.status(200).json({ message: 'Produto deletado com sucesso!' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Exportar todas as funções para usarmos nas rotas
 module.exports = {
     getProducts,
     getProduct,
