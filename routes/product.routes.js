@@ -9,15 +9,11 @@ const {
     deleteProduct 
 } = require('../controllers/product.controller');
 
-// 1. Agrupamento de rotas para a raiz ('/')
-router.route('/')
-    .get(getProducts)       // Pegar todos
-    .post(createProduct);   // Criar
-
-// 2. Agrupamento de rotas para um ID específico ('/:id')
-router.route('/:id')
-    .get(getProduct)        // Pegar um só
-    .put(updateProduct)     // Atualizar
-    .delete(deleteProduct); // Deletar
+// Rotas
+router.get('/', getProducts);          // Pegar todos
+router.get('/:id', getProduct);        // Pegar um só
+router.post('/', createProduct);       // Criar
+router.put('/:id', updateProduct);     // Atualizar
+router.delete('/:id', deleteProduct);  // Deleta
 
 module.exports = router;
