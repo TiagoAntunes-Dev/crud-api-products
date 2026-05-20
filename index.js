@@ -7,7 +7,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 1. Definição da porta com fallback para desenvolvimento local
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 27017;
 
 // Rota raiz de teste
 app.get('/', (req, res) => {
