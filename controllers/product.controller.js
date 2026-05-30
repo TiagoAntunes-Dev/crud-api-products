@@ -1,124 +1,116 @@
-const Product = require('../models/product.model');
-const mongoose = require('mongoose'); // Importação necessária para validar o ObjectId
+const Product  = require('../models/product.model');
+const mongoose = require('mongoose');
 
-// Puxar todos os produtos (GET)
+// GET /api/products — público
 const getProducts = async (req, res, next) => {
     try {
-        const products = await Product.find();
+        // .populate substitui o ObjectId pelo documento completo da categoria
+        // Antes:  category: "64abc..."
+        // Depois: category: { _id: "64abc...", name: "Doces", description: "..." }
+        const products = await Product.find().populate('category', 'name description');
         res.status(200).json(products);
     } catch (error) {
-        // Delega o erro para o middleware no index.js
         next(error);
     }
 };
 
-// Puxar apenas um produto por ID (GET)
+// GET /api/products/:id — público
 const getProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        // Trava de segurança da URL
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: 'Formato de ID inválido.' });
         }
-
-        const product = await Product.findById(id);
-        
+        const product = await Product.findById(id).populate('category', 'name description');
         if (!product) {
             return res.status(404).json({ message: 'Produto não encontrado.' });
         }
         res.status(200).json(product);
     } catch (error) {
-        next(error); 
+        next(error);
     }
 };
 
-// Criar um novo produto (POST)
+// POST /api/products — protegido
 const createProduct = async (req, res, next) => {
     try {
-        // Extração segura
-        const { name, quantity, price, image } = req.body;
+        const { name, quantity, price, image, category } = req.body;
 
-        // Validação de dados vitais
-        if (!name || name.trim() === "" || price == null) {
-            return res.status(400).json({ message: 'Os campos nome e preço são obrigatórios e não podem estar vazios.' });
+        if (!name || name.trim() === '' || price == null) {
+            return res.status(400).json({ message: 'Nome e preço são obrigatórios.' });
         }
 
-        // Criação isolada
-        const product = await Product.create({ name, quantity, price, image });
+        if (category && !mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({ message: 'ID de categoria inválido.' });
+        }
+
+        const product = await Product.create({
+            name, quantity, price, image,
+            category: category || null
+        });
+
+        // Popula antes de retornar para o cliente já ver o nome da categoria
+        await product.populate('category', 'name description');
         res.status(201).json(product);
     } catch (error) {
         next(error);
     }
 };
 
-// Atualizar um produto (PUT)
+// PUT /api/products/:id — protegido
 const updateProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        // Trava de segurança da URL
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: 'Formato de ID inválido para atualização.' });
+            return res.status(400).json({ message: 'Formato de ID inválido.' });
         }
 
-        // Extração segura dos dados enviados
-        const { name, quantity, price, image } = req.body;
+        const { name, quantity, price, image, category } = req.body;
 
-        // Validação lógica
-        if (name !== undefined && name.trim() === "") {
-            return res.status(400).json({ message: 'O nome do produto não pode ser vazio.' });
+        if (name !== undefined && name.trim() === '') {
+            return res.status(400).json({ message: 'O nome não pode ser vazio.' });
         }
 
-        // Montagem do objeto limpo para atualização parcial
+        if (category && !mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({ message: 'ID de categoria inválido.' });
+        }
+
+        // Constrói apenas os campos enviados (atualização parcial segura)
         const updateData = {};
-        if (name !== undefined) updateData.name = name;
+        if (name     !== undefined) updateData.name     = name;
         if (quantity !== undefined) updateData.quantity = quantity;
-        if (price !== undefined) updateData.price = price;
-        if (image !== undefined) updateData.image = image;
+        if (price    !== undefined) updateData.price    = price;
+        if (image    !== undefined) updateData.image    = image;
+        if (category !== undefined) updateData.category = category || null;
 
-        // Execução com validações estritas
-        const product = await Product.findByIdAndUpdate(id, updateData, { 
-            new: true, 
-            runValidators: true 
-        });
+        const product = await Product
+            .findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+            .populate('category', 'name description');
 
         if (!product) {
-            return res.status(404).json({ message: 'Produto não encontrado para atualização.' });
+            return res.status(404).json({ message: 'Produto não encontrado.' });
         }
-
-        res.status(200).json(product); 
+        res.status(200).json(product);
     } catch (error) {
         next(error);
     }
 };
 
-// Deletar um produto (DELETE)
+// DELETE /api/products/:id — protegido
 const deleteProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        // Trava de segurança da URL
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: 'Formato de ID inválido para exclusão.' });
+            return res.status(400).json({ message: 'Formato de ID inválido.' });
         }
-
         const product = await Product.findByIdAndDelete(id);
-
         if (!product) {
-            return res.status(404).json({ message: 'Produto não encontrado para exclusão.' });
+            return res.status(404).json({ message: 'Produto não encontrado.' });
         }
-
         res.status(200).json({ message: 'Produto deletado com sucesso!' });
     } catch (error) {
         next(error);
     }
 };
 
-module.exports = {
-    getProducts,
-    getProduct,
-    createProduct,
-    updateProduct,
-    deleteProduct
-};
+module.exports = { getProducts, getProduct, createProduct, updateProduct, deleteProduct };
