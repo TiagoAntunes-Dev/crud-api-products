@@ -1,5 +1,6 @@
-const express = require('express');
+const express  = require('express');
 const mongoose = require('mongoose');
+const cors     = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -9,13 +10,23 @@ app.use(express.urlencoded({ extended: true }));
 // 1. Definição da porta com fallback para desenvolvimento local
 const PORT = process.env.PORT || 4000;
 
-// Rota raiz de teste
+// Health check — útil para verificar se a API está viva
 app.get('/', (req, res) => {
-    res.send('Hello, World! Updated with error handling!');
+    res.json({
+        status: 'ok',
+        message: 'Product CRUD API v2.0',
+        endpoints: {
+            auth:       '/api/auth',
+            products:   '/api/products',
+            categories: '/api/categories'
+        }
+    });
 });
 
-// Registrar o arquivo de rotas (Isso adiciona /api/products antes de tudo no product.routes)
-app.use('/api/products', require('./routes/product.routes'));
+// Rotas
+app.use('/api/auth',       require('./routes/auth.routes'));
+app.use('/api/products',   require('./routes/product.routes'));
+app.use('/api/categories', require('./routes/category.routes'));
 
 // --- NOVO: Middleware Centralizado de Erros ---
 // Ele recebe 4 argumentos: (err, req, res, next)
