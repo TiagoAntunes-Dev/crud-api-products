@@ -24,14 +24,11 @@ const UserSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Roda ANTES de salvar — só faz hash se a senha foi modificada
-UserSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
+UserSchema.pre('save', async function () {
+    if (!this.isModified('password')) return;
     this.password = await bcrypt.hash(this.password, 10);
-    next();
 });
 
-// Método de instância: compara texto com o hash salvo
 UserSchema.methods.comparePassword = async function (candidate) {
     return bcrypt.compare(candidate, this.password);
 };

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/auth.middleware');
 
 const { 
     getProducts, 
@@ -10,10 +11,8 @@ const {
 } = require('../controllers/product.controller');
 
 // Rotas
-router.get('/', getProducts);          // Pegar todos
-router.get('/:id', getProduct);        // Pegar um só
-router.post('/', createProduct);       // Criar
-router.put('/:id', updateProduct);     // Atualizar
-router.delete('/:id', deleteProduct);  // Deleta
+router.post('/',      protect, createProduct);
+router.put('/:id',    protect, updateProduct);
+router.delete('/:id', protect, deleteProduct);
 
 module.exports = router;
