@@ -11,6 +11,8 @@ const {
 } = require('../controllers/product.controller');
 
 // Rotas
+router.get('/',       getProducts);         // Público
+router.get('/:id',    getProduct);          // Público
 router.post('/',      protect, createProduct);
 router.put('/:id',    protect, updateProduct);
 router.delete('/:id', protect, deleteProduct);

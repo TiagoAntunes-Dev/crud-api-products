@@ -4,6 +4,16 @@ const cors     = require('cors');
 require('dotenv').config();
 
 const app = express();
+
+// CORS Configuration
+app.use(cors({
+    origin: ['http://localhost:4200', 'http://localhost:3000', 'http://127.0.0.1:4200'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
